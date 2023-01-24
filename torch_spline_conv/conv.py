@@ -7,7 +7,7 @@ from .weighting import spline_weighting
 
 
 @torch.jit.script
-def spline_conv(x: torch.Tensor,out_size:torch.Tensor, edge_index: torch.Tensor,
+def spline_conv(x: torch.Tensor,out_size:int, edge_index: torch.Tensor,
                 pseudo: torch.Tensor, weight: torch.Tensor,
                 kernel_size: torch.Tensor, is_open_spline: torch.Tensor,
                 degree: int = 1, norm: bool = True,
