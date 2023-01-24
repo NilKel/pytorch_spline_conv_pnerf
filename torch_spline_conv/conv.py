@@ -7,7 +7,7 @@ from .weighting import spline_weighting
 
 
 @torch.jit.script
-def spline_conv(x: torch.Tensor, edge_index: torch.Tensor,
+def spline_conv(x: torch.Tensor,out_size:torch.Tensor, edge_index: torch.Tensor,
                 pseudo: torch.Tensor, weight: torch.Tensor,
                 kernel_size: torch.Tensor, is_open_spline: torch.Tensor,
                 degree: int = 1, norm: bool = True,
@@ -59,12 +59,12 @@ def spline_conv(x: torch.Tensor, edge_index: torch.Tensor,
 
     # Convert E x M_out to N x M_out features.
     row_expanded = row.unsqueeze(-1).expand_as(out)
-    out = x.new_zeros((N, M_out)).scatter_add_(0, row_expanded, out)
+    out = x.new_zeros((out_size, M_out)).scatter_add_(0, row_expanded, out)
 
     # Normalize out by node degree (if wished).
     if norm:
         ones = torch.ones(E, dtype=x.dtype, device=x.device)
-        deg = out.new_zeros(N).scatter_add_(0, row, ones)
+        deg = out.new_zeros(out_size).scatter_add_(0, row, ones)
         out = out / deg.unsqueeze(-1).clamp_(min=1)
 
     # Weight root node separately (if wished).
