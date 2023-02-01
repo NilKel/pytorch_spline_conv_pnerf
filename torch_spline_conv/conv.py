@@ -49,7 +49,7 @@ def spline_conv(x: torch.Tensor,out_size:int, edge_index: torch.Tensor,
     pseudo = pseudo.unsqueeze(-1) if pseudo.dim() == 1 else pseudo
 
     row, col = edge_index[0], edge_index[1]
-    N, E, M_out = x.size(0), row.size(0), weight.size(2)
+    #N, E, M_out = x.size(0), row.size(0), weight.size(2)
 
     # Weight each node.
     basis, weight_index = spline_basis(pseudo, kernel_size, is_open_spline,
