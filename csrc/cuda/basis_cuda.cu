@@ -63,11 +63,10 @@ spline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
                        const uint8_t *is_open_spline, scalar_t *basis,
                        int64_t *weight_index, int64_t E, int64_t D, int64_t S,
                        int64_t numel) {
-
+  
   const int64_t thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
   const int64_t e = thread_idx / S;
   const int64_t s = thread_idx % S;
-
   if (thread_idx < numel) {
     int64_t k = s, wi = 0, wi_offset = 1;
     scalar_t b = (scalar_t)1.;
@@ -90,6 +89,7 @@ spline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
     basis[thread_idx] = b;
     weight_index[thread_idx] = wi;
   }
+
 }
 
 std::tuple<torch::Tensor, torch::Tensor>
@@ -104,7 +104,7 @@ spline_basis_fw_cuda(torch::Tensor pseudo, torch::Tensor kernel_size,
   CHECK_INPUT(pseudo.size(1) == kernel_size.numel());
   CHECK_INPUT(is_open_spline.dim());
   CHECK_INPUT(pseudo.size(1) == is_open_spline.numel());
-
+  
   auto E = pseudo.size(0);
   auto D = pseudo.size(1);
   auto S = (int64_t)(powf(degree + 1, D) + 0.5);

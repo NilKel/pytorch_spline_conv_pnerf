@@ -2,8 +2,8 @@ from itertools import product
 
 import pytest
 import torch
-from torch_spline_conv import spline_basis
-from torch_spline_conv.testing import devices, dtypes, tensor
+from torch_spline_conv_EKM_scatter import spline_basis
+from torch_spline_conv_EKM_scatter.testing import devices, dtypes, tensor
 
 tests = [{
     'pseudo': [[0], [0.0625], [0.25], [0.75], [0.9375], [1]],

@@ -8,5 +8,8 @@ std::tuple<torch::Tensor, torch::Tensor>
 spline_basis(torch::Tensor pseudo, torch::Tensor kernel_size,
              torch::Tensor is_open_spline, int64_t degree);
 
-torch::Tensor spline_weighting(torch::Tensor x, torch::Tensor weight,
+torch::Tensor spline_weighting(torch::Tensor x,
                                torch::Tensor basis, torch::Tensor weight_index);
+
+torch::Tensor scatter(torch::Tensor out,
+                               int64_t size, torch::Tensor sample_index);

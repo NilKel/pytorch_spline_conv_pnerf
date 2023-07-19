@@ -15,7 +15,7 @@ endif()
 find_package(Python3 COMPONENTS Development)
 find_package(Torch REQUIRED)
 
-file(GLOB HEADERS csrc/spline_conv.h)
+file(GLOB HEADERS csrc/spline_conv_mod.h)
 file(GLOB OPERATOR_SOURCES csrc/cpu/*.h csrc/cpu/*.cpp csrc/*.cpp)
 if(WITH_CUDA)
   file(GLOB OPERATOR_SOURCES ${OPERATOR_SOURCES} csrc/cuda/*.h csrc/cuda/*.cu)
@@ -58,12 +58,13 @@ install(EXPORT TorchSplineConvTargets
 install(FILES ${HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME})
 install(FILES
   csrc/cpu/basis_cpu.h
-  csrc/cpu/weighting_cpu.h
+  csrc/cpu/weighting_mod_cpu.h
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cpu)
 if(WITH_CUDA)
   install(FILES
     csrc/cuda/basis_cuda.h
-    csrc/cuda/weighting_cuda.h
+    csrc/cuda/weighting_mod_cuda.h
+    csrc/cuda/scatter_cuda.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cuda)
 endif()
 

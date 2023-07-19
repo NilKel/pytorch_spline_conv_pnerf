@@ -125,7 +125,7 @@ torch::Tensor spline_basis_bw_cpu(torch::Tensor grad_basis,
   CHECK_INPUT(pseudo.size(1) == kernel_size.numel());
   CHECK_INPUT(is_open_spline.dim());
   CHECK_INPUT(pseudo.size(1) == is_open_spline.numel());
-
+  printf("IS IT REACHING HERE?\n");
   auto E = pseudo.size(0);
   auto D = pseudo.size(1);
   auto S = grad_basis.size(1);

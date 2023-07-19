@@ -12,7 +12,7 @@ from torch.utils.cpp_extension import (CUDA_HOME, BuildExtension, CppExtension,
                                        CUDAExtension)
 
 __version__ = '1.2.2'
-URL = 'https://github.com/rusty1s/pytorch_spline_conv'
+URL = 'https://github.com/rusty1s/torch_spline_conv_EKM_scatter'
 
 WITH_CUDA = False
 if torch.cuda.is_available():
@@ -88,7 +88,7 @@ def get_extensions():
 
         Extension = CppExtension if suffix == 'cpu' else CUDAExtension
         extension = Extension(
-            f'torch_spline_conv._{name}_{suffix}',
+            f'torch_spline_conv_EKM_scatter._{name}_{suffix}',
             sources,
             include_dirs=[extensions_dir],
             define_macros=define_macros,
@@ -114,7 +114,7 @@ if torch.cuda.is_available() and torch.version.hip:
     include_package_data = False
 
 setup(
-    name='torch_spline_conv',
+    name='torch_spline_conv_EKM_scatter',
     version=__version__,
     description=('Implementation of the Spline-Based Convolution Operator of '
                  'SplineCNN in PyTorch'),

@@ -1,11 +1,11 @@
 [pypi-image]: https://badge.fury.io/py/torch-spline-conv.svg
 [pypi-url]: https://pypi.python.org/pypi/torch-spline-conv
-[testing-image]: https://github.com/rusty1s/pytorch_spline_conv/actions/workflows/testing.yml/badge.svg
-[testing-url]: https://github.com/rusty1s/pytorch_spline_conv/actions/workflows/testing.yml
-[linting-image]: https://github.com/rusty1s/pytorch_spline_conv/actions/workflows/linting.yml/badge.svg
-[linting-url]: https://github.com/rusty1s/pytorch_spline_conv/actions/workflows/linting.yml
-[coverage-image]: https://codecov.io/gh/rusty1s/pytorch_spline_conv/branch/master/graph/badge.svg
-[coverage-url]: https://codecov.io/github/rusty1s/pytorch_spline_conv?branch=master
+[testing-image]: https://github.com/rusty1s/torch_spline_conv_EKM_scatter/actions/workflows/testing.yml/badge.svg
+[testing-url]: https://github.com/rusty1s/torch_spline_conv_EKM_scatter/actions/workflows/testing.yml
+[linting-image]: https://github.com/rusty1s/torch_spline_conv_EKM_scatter/actions/workflows/linting.yml/badge.svg
+[linting-url]: https://github.com/rusty1s/torch_spline_conv_EKM_scatter/actions/workflows/linting.yml
+[coverage-image]: https://codecov.io/gh/rusty1s/torch_spline_conv_EKM_scatter/branch/master/graph/badge.svg
+[coverage-url]: https://codecov.io/github/rusty1s/torch_spline_conv_EKM_scatter?branch=master
 
 # Spline-Based Convolution Operator of SplineCNN
 
@@ -104,7 +104,7 @@ export TORCH_CUDA_ARCH_LIST = "6.0 6.1 7.2+PTX 7.5+PTX"
 ## Usage
 
 ```python
-from torch_spline_conv import spline_conv
+from torch_spline_conv_EKM_scatter import spline_conv
 
 out = spline_conv(x,
                   edge_index,
@@ -151,7 +151,7 @@ The kernel function is defined over the weighted B-spline tensor product basis, 
 
 ```python
 import torch
-from torch_spline_conv import spline_conv
+from torch_spline_conv_EKM_scatter import spline_conv
 
 x = torch.rand((4, 2), dtype=torch.float)  # 4 nodes with 2 features each
 edge_index = torch.tensor([[0, 1, 1, 2, 2, 3], [1, 0, 2, 1, 3, 2]])  # 6 edges

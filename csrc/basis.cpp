@@ -2,9 +2,10 @@
 #include <torch/script.h>
 
 #include "cpu/basis_cpu.h"
-
+#include <cuda_runtime.h>
 #ifdef WITH_CUDA
 #include "cuda/basis_cuda.h"
+
 #endif
 
 #ifdef _WIN32
@@ -21,6 +22,7 @@ spline_basis_fw(torch::Tensor pseudo, torch::Tensor kernel_size,
   if (pseudo.device().is_cuda()) {
 #ifdef WITH_CUDA
     return spline_basis_fw_cuda(pseudo, kernel_size, is_open_spline, degree);
+    
 #else
     AT_ERROR("Not compiled with CUDA support");
 #endif
@@ -82,4 +84,4 @@ spline_basis(torch::Tensor pseudo, torch::Tensor kernel_size,
 }
 
 static auto registry = torch::RegisterOperators().op(
-    "torch_spline_conv::spline_basis", &spline_basis);
+    "torch_spline_conv_EKM_scatter::spline_basis", &spline_basis);
