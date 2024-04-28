@@ -1,22 +1,14 @@
 #pragma once
+#include <ATen/native/cuda/KernelUtils.cuh>
 
-static inline __device__ void atomAdd(float *address, float val) {
-  atomicAdd(address, val);
+template <typename scalar_t>
+__device__ void atomAdd(scalar_t *address,  long index, long totalElements, scalar_t val) {
+    // Use atomicAdd for non-Half types
+    atomicAdd(&address[index], val);
 }
-#if defined(USE_ROCM) || (defined(__CUDA_ARCH__) && (__CUDA_ARCH__ < 600 || CUDA_VERSION < 8000))
-static inline __device__ void atomAdd(double *address, double val) {
-  unsigned long long int *address_as_ull = (unsigned long long int *)address;
-  unsigned long long int old = *address_as_ull;
-  unsigned long long int assumed;
 
-  do {
-    assumed = old;
-    old = atomicCAS(address_as_ull, assumed,
-                    __double_as_longlong(val + __longlong_as_double(assumed)));
-  } while (assumed != old);
+// Specialization for c10::Half type using fastAtomicAdd
+template <>
+__device__ void atomAdd<c10::Half>(c10::Half *address, long index, long totalElements,  c10::Half val) {
+    at::native::fastAtomicAdd(address, index, totalElements, val, true);
 }
-#else
-static inline __device__ void atomAdd(double *address, double val) {
-  atomicAdd(address, val);
-}
-#endif

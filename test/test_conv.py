@@ -3,8 +3,8 @@ from itertools import product
 import pytest
 import torch
 from torch.autograd import gradcheck
-from torch_spline_conv import spline_conv
-from torch_spline_conv.testing import devices, dtypes, tensor
+from compact_spline import spline_conv
+from compact_spline.testing import devices, dtypes, tensor
 
 degrees = [1, 2, 3]
 

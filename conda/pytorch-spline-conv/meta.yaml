@@ -29,9 +29,9 @@ build:
 
 test:
   imports:
-    - torch_spline_conv
+    - compact_spline
 
 about:
-  home: https://github.com/rusty1s/pytorch_spline_conv
+  home: https://github.com/rusty1s/compact_spline
   license: MIT
   summary: Implementation of the Spline-Based Convolution Operator of SplineCNN in PyTorch

@@ -1,4 +1,4 @@
-# TorchSplineConvConfig.cmake
+# CompactSplineConfig.cmake
 # --------------------
 #
 # Exported targets:: SplineConv
@@ -6,7 +6,7 @@
 
 @PACKAGE_INIT@
 
-set(PN TorchSplineConv)
+set(PN CompactSpline)
 set(${PN}_INCLUDE_DIR "${PACKAGE_PREFIX_DIR}/@CMAKE_INSTALL_INCLUDEDIR@")
 set(${PN}_LIBRARY "")
 set(${PN}_DEFINITIONS USING_${PN})
@@ -19,7 +19,7 @@ if(NOT (CMAKE_VERSION VERSION_LESS 3.0))
 # Don't include targets if this file is being picked up by another
 # project which has already built this as a subproject
 #-----------------------------------------------------------------------------
-if(NOT TARGET ${PN}::TorchSplineConv)
+if(NOT TARGET ${PN}::CompactSpline)
 include("${CMAKE_CURRENT_LIST_DIR}/${PN}Targets.cmake")
 
 if(NOT TARGET torch_library)
@@ -28,10 +28,10 @@ endif()
 if(NOT TARGET Python3::Python)
 find_package(Python3 COMPONENTS Development)
 endif()
-target_link_libraries(TorchSplineConv::TorchSplineConv INTERFACE ${TORCH_LIBRARIES} Python3::Python)
+target_link_libraries(CompactSpline::CompactSpline INTERFACE ${TORCH_LIBRARIES} Python3::Python)
 
 if(@WITH_CUDA@)
-  target_compile_definitions(TorchSplineConv::TorchSplineConv INTERFACE WITH_CUDA)
+  target_compile_definitions(CompactSpline::CompactSpline INTERFACE WITH_CUDA)
 endif()
 
 endif()
