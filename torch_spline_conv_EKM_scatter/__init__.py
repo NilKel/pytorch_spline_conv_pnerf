@@ -5,7 +5,7 @@ import torch
 
 __version__ = '1.2.2'
 
-for library in ['_version', '_basis', '_weighting_mod', '_scatter']:
+for library in ['_version', '_basis', '_weighting_mod', '_scatter','_outscatter' ,'_indexing', '_fusedspline']:
     cuda_spec = importlib.machinery.PathFinder().find_spec(
         f'{library}_cuda', [osp.dirname(__file__)])
     cpu_spec = importlib.machinery.PathFinder().find_spec(
@@ -37,11 +37,17 @@ from .basis import spline_basis  # noqa  # noqa
 from .newconv import spline_conv_mod  # noqa
 from .weighting_mod import spline_weighting  # noqa
 from .scatter import scatter
+from .outscatter import outscatter
+from .indexing import indexing
+from .fusedspline import fusedspline
 
 __all__ = [
     'spline_basis',
     'spline_weighting',
     'spline_conv_mod',
     'scatter',
+    'outscatter',
+    'indexing',
     '__version__',
+    'fusedspline'
 ]

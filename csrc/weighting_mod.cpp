@@ -44,18 +44,18 @@ torch::Tensor spline_weighting_bw_x(torch::Tensor grad_out,
 
 
 
-torch::Tensor spline_weighting_bw_basis(torch::Tensor grad_out, torch::Tensor x,
-                                        torch::Tensor weight_index) {
-  if (grad_out.device().is_cuda()) {
-#ifdef WITH_CUDA
-    return spline_weighting_bw_basis_cuda(grad_out, x,  weight_index);
-#else
-    AT_ERROR("Not compiled with CUDA support");
-#endif
-  } else {
-    return spline_weighting_bw_basis_cpu(grad_out, x, weight_index);
-  }
-}
+// torch::Tensor spline_weighting_bw_basis(torch::Tensor grad_out, torch::Tensor x,
+//                                         torch::Tensor weight_index) {
+//   if (grad_out.device().is_cuda()) {
+// #ifdef WITH_CUDA
+//     return spline_weighting_bw_basis_cuda(grad_out, x,  weight_index);
+// #else
+//     AT_ERROR("Not compiled with CUDA support");
+// #endif
+//   } else {
+//     return spline_weighting_bw_basis_cpu(grad_out, x, weight_index);
+//   }
+// }
 
 using torch::autograd::AutogradContext;
 using torch::autograd::Variable;
@@ -83,10 +83,10 @@ public:
     }
 
 
-    auto grad_basis = Variable();
-    if (torch::autograd::any_variable_requires_grad({basis})) {
-      grad_basis = spline_weighting_bw_basis(grad_out, x, weight_index);
-    }
+    // auto grad_basis = Variable();
+    // if (torch::autograd::any_variable_requires_grad({basis})) {
+    //   grad_basis = spline_weighting_bw_basis(grad_out, x, weight_index);
+    // }
 
     return {grad_x, Variable(), Variable()};
   }

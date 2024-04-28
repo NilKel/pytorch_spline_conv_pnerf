@@ -12,7 +12,3 @@ torch::Tensor spline_weighting_bw_x_cuda(torch::Tensor grad_out,
                                          int64_t kernel_size);
 
 
-
-torch::Tensor spline_weighting_bw_basis_cuda(torch::Tensor grad_out,
-                                             torch::Tensor x,
-                                             torch::Tensor weight_index);

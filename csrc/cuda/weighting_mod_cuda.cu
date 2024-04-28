@@ -118,7 +118,8 @@ spline_weighting_bw_x_kernel(const scalar_t *grad_out,
         // auto v = b*g;
     //     v+=b;
     //     // atomAdd(&grad_x[e * K * M_out + m_out * K + wi], v);
-        atomAdd(&grad_x[e * K * M_out  + wi * M_out + m_out], b*g);
+        // atomAdd(&grad_x[e * K * M_out  + wi * M_out + m_out], b*g);
+        atomAdd(grad_x, e * K * M_out  + wi * M_out + m_out,E*K*M_out, b*g);
     //     // grad_x[e * K * M_out  + wi * M_out + m_out]= v;
     //   // }
     }
@@ -164,65 +165,3 @@ torch::Tensor spline_weighting_bw_x_cuda(torch::Tensor grad_out,
 
 
 
-
-
-template <typename scalar_t>
-__global__ void spline_weighting_bw_basis_kernel(
-    const scalar_t *grad_out, const scalar_t *x, 
-    const int64_t *weight_index, scalar_t *grad_basis, int64_t E,
-    int64_t M_out, int64_t S, int64_t K, int64_t numel) {
-
-  const size_t thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
-  const int64_t e = thread_idx / M_out;
-  const int64_t m_out = thread_idx % M_out;
-
-  if (thread_idx < numel) {
-    //grad_out was originally of shape [E, M_out] and now we want it to be of shape [E, M_out, kernel size]
-    // const scalar_t g = grad_out[e * M_out + m_out];
-    
-    const scalar_t g = grad_out[e * M_out + m_out];
-    for (int64_t s = 0; s < S; s++) {
-      scalar_t v = (scalar_t)0.;
-      const int64_t wi = weight_index[e * S + s];
-      
-      // for (int64_t m_in = 0; m_in < M_in; m_in++) {
-      // const scalar_t w = weight[wi * M_in * M_out + m_in * M_out + m_out];
-      v += g *  x[wi*E*M_out + e*M_out + m_out];
-      // }
-      atomAdd(&grad_basis[e * S + s], v);
-    }
-  }
-}
-
-torch::Tensor spline_weighting_bw_basis_cuda(torch::Tensor grad_out,
-                                             torch::Tensor x,
-                                             torch::Tensor weight_index) {
-  CHECK_CUDA(grad_out);
-  CHECK_CUDA(x);
-  CHECK_CUDA(weight_index);
-  cudaSetDevice(grad_out.get_device());
-
-
-  auto E = grad_out.size(0);
-  auto M_out = grad_out.size(1);
-  auto S = weight_index.size(1);
-  auto K = x.size(0);
-
-  auto grad_basis = at::zeros({E, S}, grad_out.options());
-
-  // auto weight_index_data = weight_index.data_ptr<int64_t>();
-
-  // auto stream = at::cuda::getCurrentCUDAStream();
-  // AT_DISPATCH_FLOATING_TYPES(x.scalar_type(), "weighting_bw_basis", [&] {
-  //   auto grad_out_data = grad_out.data_ptr<scalar_t>();
-  //   auto x_data = x.data_ptr<scalar_t>();
-  //   auto grad_basis_data = grad_basis.data_ptr<scalar_t>();
-
-  //   spline_weighting_bw_basis_kernel<scalar_t>
-  //       <<<BLOCKS(grad_out.numel()), THREADS, 0, stream>>>(
-  //           grad_out_data, x_data, weight_index_data,
-  //           grad_basis_data, E, M_out, S, K, grad_out.numel());
-       
-  // });
-  return grad_basis;
-}

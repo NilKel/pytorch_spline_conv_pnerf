@@ -5,10 +5,10 @@ import torch
 from .basis import spline_basis
 from .weighting_mod import spline_weighting
 from .scatter import scatter
-
+from .indexing import indexing
 @torch.jit.script
 def spline_conv_mod(x: torch.Tensor, edge_index: torch.Tensor,
-                pseudo: torch.Tensor,
+                pseudo: torch.Tensor, grad_zeros: torch.Tensor,
                 kernel_size: torch.Tensor, is_open_spline: torch.Tensor,
                 degree: int = 1, norm: bool = True,
                 root_weight: Optional[torch.Tensor] = None,
@@ -53,9 +53,11 @@ def spline_conv_mod(x: torch.Tensor, edge_index: torch.Tensor,
     # Weight each node. Should give E number of basis functions
     basis, weight_index = spline_basis(pseudo, kernel_size, is_open_spline,
                                        degree)
-
+    print(col.shape)
+    print(grad_zeros.shape)
+    print(x.shape)
     #new spline convolution
-    out = spline_weighting(x[col], basis, weight_index)
+    out = spline_weighting(indexing(x,col.shape[0],col, grad_zeros), basis, weight_index)
         
     finout= scatter(out,o_size,row)
 

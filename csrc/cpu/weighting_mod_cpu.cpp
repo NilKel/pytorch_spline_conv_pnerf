@@ -18,7 +18,7 @@ torch::Tensor spline_weighting_fw_cpu(torch::Tensor x,
 
   auto weight_index_data = weight_index.data_ptr<int64_t>();
 
-  AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::BFloat16, x.scalar_type(), "weighting_fw", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF( x.scalar_type(), "weighting_fw", [&] {
     auto x_data = x.data_ptr<scalar_t>();
     auto basis_data = basis.data_ptr<scalar_t>();
     auto out_data = out.data_ptr<scalar_t>();
@@ -63,7 +63,7 @@ torch::Tensor spline_weighting_bw_x_cpu(torch::Tensor grad_out,
 
   auto weight_index_data = weight_index.data_ptr<int64_t>();
 
-  AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::BFloat16, grad_out.scalar_type(), "weighting_bw_x", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF(grad_out.scalar_type(), "weighting_bw_x", [&] {
     auto grad_out_data = grad_out.data_ptr<scalar_t>();
     auto basis_data = basis.data_ptr<scalar_t>();
     auto grad_x_data = grad_x.data_ptr<scalar_t>();
@@ -109,7 +109,7 @@ torch::Tensor spline_weighting_bw_basis_cpu(torch::Tensor grad_out,
 
   auto weight_index_data = weight_index.data_ptr<int64_t>();
 
-  AT_DISPATCH_FLOATING_TYPES_AND(at::ScalarType::BFloat16, x.scalar_type(), "weighting_bw_basis", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF(x.scalar_type(), "weighting_bw_basis", [&] {
     auto grad_out_data = grad_out.data_ptr<scalar_t>();
     auto x_data = x.data_ptr<scalar_t>();
     auto grad_basis_data = grad_basis.data_ptr<scalar_t>();

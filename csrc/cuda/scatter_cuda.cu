@@ -22,7 +22,7 @@ scatter_fw_kernel(const scalar_t *out,
   if (thread_idx < numel) {
     // if(sample_index[e]<size_scatter_out){
         // scatter_out[sample_index[e]*M_out+m_out] += out[thread_idx]; 
-        atomAdd(&scatter_out[sample_index[e]*M_out+m_out], out[thread_idx]);
+        atomAdd(scatter_out,sample_index[e]*M_out+m_out,size_scatter_out*M_out, out[thread_idx]);
     // }
   
   }
@@ -48,7 +48,7 @@ torch::Tensor scatter_fw_cuda(torch::Tensor out,
   auto sample_ind_data = sample_ind.data_ptr<int64_t>(); //6,8
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_FLOATING_TYPES(out.scalar_type(), "scatter_fw", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16,out.scalar_type(), "scatter_fw", [&] {
     auto out_data = out.data_ptr<scalar_t>();
     auto scatter_out_data = scatter_out.data_ptr<scalar_t>();
 
@@ -74,8 +74,9 @@ scatter_bw_kernel(scalar_t *grad_out,
 
   if (thread_idx < numel) {
    
-      atomAdd(&grad_out[thread_idx], grad_scatter_out[sample_index[e]*M_out+m_out]);
-      
+      // atomAdd(&grad_out[thread_idx], grad_scatter_out[sample_index[e]*M_out+m_out]);
+      atomAdd(grad_out,thread_idx, numel, grad_scatter_out[sample_index[e]*M_out+m_out]);
+      // grad_out[thread_idx] = grad_scatter_out[sample_index[e]*M_out+m_out];
       
   }
 }
@@ -96,7 +97,7 @@ torch::Tensor scatter_bw_cuda(torch::Tensor grad_scatter_out,
   auto sample_ind_data = sample_ind.data_ptr<int64_t>(); //6,8
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_FLOATING_TYPES(grad_scatter_out.scalar_type(), "scatter_bw", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND2(at::ScalarType::Half, at::ScalarType::BFloat16,grad_scatter_out.scalar_type(), "scatter_bw", [&] {
     auto grad_out_data = grad_out.data_ptr<scalar_t>();
     auto grad_scatter_out_data = grad_scatter_out.data_ptr<scalar_t>();
 
