@@ -54,7 +54,7 @@ jobs:
       - name: Build Conda package for CPU
         if: ${{ matrix.cuda-version == 'cpu' }}
         run: |
-          FORCE_CUDA=0 TORCH_CUDA_ARCH_LIST=0 ./conda/pytorch-spline-conv/build_conda.sh ${{ matrix.python-version }} ${{ matrix.torch-version }} ${{ matrix.cuda-version }}
+          FORCE_CUDA=0 TORCH_CUDA_ARCH_LIST=0 ./conda/pytorch-spline-conv-EKM/build_conda.sh ${{ matrix.python-version }} ${{ matrix.torch-version }} ${{ matrix.cuda-version }}
         shell:
           bash -l {0}
 
@@ -62,7 +62,7 @@ jobs:
         if: ${{ matrix.cuda-version != 'cpu' }}
         run: |
           source .github/workflows/cuda/${{ matrix.cuda-version }}-${{ runner.os }}-env.sh
-          ./conda/pytorch-spline-conv/build_conda.sh ${{ matrix.python-version }} ${{ matrix.torch-version }} ${{ matrix.cuda-version }}
+          ./conda/pytorch-spline-conv-EKM/build_conda.sh ${{ matrix.python-version }} ${{ matrix.torch-version }} ${{ matrix.cuda-version }}
         shell:
           bash -l {0}
 

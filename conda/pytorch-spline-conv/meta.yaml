@@ -29,9 +29,9 @@ build:
 
 test:
   imports:
-    - torch_spline_conv
+    - torch_spline_conv_EKM
 
 about:
-  home: https://github.com/rusty1s/pytorch_spline_conv
+  home: https://github.com/rusty1s/pytorch_spline_conv_EKM
   license: MIT
   summary: Implementation of the Spline-Based Convolution Operator of SplineCNN in PyTorch

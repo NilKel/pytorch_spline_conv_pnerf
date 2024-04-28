@@ -63,11 +63,10 @@ spline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
                        const uint8_t *is_open_spline, scalar_t *basis,
                        int64_t *weight_index, int64_t E, int64_t D, int64_t S,
                        int64_t numel) {
-
+  
   const int64_t thread_idx = blockIdx.x * blockDim.x + threadIdx.x;
   const int64_t e = thread_idx / S;
   const int64_t s = thread_idx % S;
-
   if (thread_idx < numel) {
     int64_t k = s, wi = 0, wi_offset = 1;
     scalar_t b = (scalar_t)1.;
@@ -90,6 +89,7 @@ spline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
     basis[thread_idx] = b;
     weight_index[thread_idx] = wi;
   }
+
 }
 
 std::tuple<torch::Tensor, torch::Tensor>
@@ -104,7 +104,7 @@ spline_basis_fw_cuda(torch::Tensor pseudo, torch::Tensor kernel_size,
   CHECK_INPUT(pseudo.size(1) == kernel_size.numel());
   CHECK_INPUT(is_open_spline.dim());
   CHECK_INPUT(pseudo.size(1) == is_open_spline.numel());
-
+  
   auto E = pseudo.size(0);
   auto D = pseudo.size(1);
   auto S = (int64_t)(powf(degree + 1, D) + 0.5);
@@ -117,7 +117,7 @@ spline_basis_fw_cuda(torch::Tensor pseudo, torch::Tensor kernel_size,
   auto weight_index_data = weight_index.data_ptr<int64_t>();
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_FLOATING_TYPES(pseudo.scalar_type(), "basis_fw", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF(pseudo.scalar_type(), "basis_fw", [&] {
     auto pseudo_data = pseudo.data_ptr<scalar_t>();
     auto basis_data = basis.data_ptr<scalar_t>();
 
@@ -198,7 +198,7 @@ torch::Tensor spline_basis_bw_cuda(torch::Tensor grad_basis,
   auto is_open_spline_data = is_open_spline.data_ptr<uint8_t>();
 
   auto stream = at::cuda::getCurrentCUDAStream();
-  AT_DISPATCH_FLOATING_TYPES(pseudo.scalar_type(), "basis_bw", [&] {
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF(pseudo.scalar_type(), "basis_bw", [&] {
     auto grad_basis_data = grad_basis.data_ptr<scalar_t>();
     auto pseudo_data = pseudo.data_ptr<scalar_t>();
     auto grad_pseudo_data = grad_pseudo.data_ptr<scalar_t>();

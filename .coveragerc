@@ -1,5 +1,5 @@
 [run]
-source=torch_spline_conv
+source=torch_spline_conv_EKM
 [report]
 exclude_lines =
     pragma: no cover
