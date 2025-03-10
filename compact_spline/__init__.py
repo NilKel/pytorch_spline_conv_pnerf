@@ -5,7 +5,7 @@ import torch
 
 __version__ = '1.2.2'
 
-for library in ['_version' ,'_multispline_basis', '_multispline_fused' ]:
+for library in ['_version' ,'_multispline_basis', '_multispline_fused', '_ray_intersect', '_confidence_basis']:
     cuda_spec = importlib.machinery.PathFinder().find_spec(
         f'{library}_cuda', [osp.dirname(__file__)])
     cpu_spec = importlib.machinery.PathFinder().find_spec(
@@ -35,9 +35,13 @@ if torch.version.cuda is not None and cuda_version != -1:  # pragma: no cover
 
 from .multispline_basis import multispline_basis  # noqa
 from .multispline_fused import multispline_fused  # noqa
+from .ray_intersect import ray_intersect # noqa
+from .confidence_basis import confidence_basis # noqa
 
 __all__ = [
     'multispline_basis',
     'multispline_fused',
+    'confidence_basis',
+    'ray_intersect',
     '__version__',
 ]

@@ -65,6 +65,8 @@ if(WITH_CUDA)
     csrc/cuda/basis_cuda.h
     csrc/cuda/multispline_basis_cuda.h
     csrc/cuda/multispline_fused_cuda.h
+    csrc/cuda/ray_intersect.h
+    csrc/cuda/confidence_basis.h
     csrc/cuda/weighting_mod_cuda.h
     DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/${PROJECT_NAME}/cuda)
 endif()

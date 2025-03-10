@@ -87,21 +87,23 @@ multispline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
         const int64_t k_mod = k % (degree + 1);
         k /= degree + 1;
         scalar_t v;
-       
+        
         v = pseudo[e * D * levels + d*levels + level];
         // array of wi here and array of offsets used
         // wi += (((int64_t)v + k_mod) % kernel_size[level*D+d]) * wi_offset;
-        wi = wi ^ ((((int64_t)v + k_mod) % kernel_size[level*D+d])*primes[d]);
-        wi_offset *= kernel_size[level*D+d];
+        // wi = wi ^ (((((int64_t)v + k_mod) % kernel_size[level*D+d])*wi_offset)*primes[d]);
+        wi = wi ^ ((offsets[e*levels+level]+(((int64_t)v + k_mod) % kernel_size[level*D+d]))*primes[d]);
+        // wi_offset *= kernel_size[level*D+d];
 
         v -= floor(v);
-        v = Basis<scalar_t, degree>::forward(v, k_mod);
+        v = 1. - v - k_mod + 2. * v * k_mod;;
         b *= v;
       }
       
       // unsigned int temp = ((wi + point_idx *offsets[level]) *(primes[level])& ((1 << log2_hashmap_size) - 1));
-      unsigned int temp = (wi ^ point_idx*primes[4]) & ((1 << log2_hashmap_size) - 1);
-      unsigned int temp = (wi ^ point_idx) & ((1 << log2_hashmap_size) - 1);
+      // unsigned int temp = (wi ^ (point_idx*primes[4])) & ((1 << log2_hashmap_size) - 1);
+      unsigned int temp = (wi) & ((1 << log2_hashmap_size) - 1);
+      // unsigned int temp = (wi ^ point_idx) & ((1 << log2_hashmap_size) - 1);
       // unsigned int temp = (((wi + point_idx *offsets[level])) ^ primes[level]);
       // // temp = temp % 4294967295;
       // hashed_coords = (temp ) & ((1 << log2_hashmap_size) - 1);
@@ -207,7 +209,7 @@ multispline_basis_fw_kernel(const scalar_t *pseudo, const int64_t *kernel_size,
 
 
 std::tuple<torch::Tensor, torch::Tensor>
-multispline_basis_fw_cuda(torch::Tensor pseudo, torch::Tensor kernel_size,
+multispline_basis_fw_cuda(torch::Tensor pseudo, torch::Tensor pseudo_unscaled, torch::Tensor kernel_size,
                      torch::Tensor is_open_spline, int64_t degree, torch::Tensor resolution, int64_t log2_hashmap_size, int64_t cellsize,
                     torch::Tensor xyz, torch::Tensor point_index, torch::Tensor primes, torch::Tensor offsets) {
   CHECK_CUDA(pseudo);

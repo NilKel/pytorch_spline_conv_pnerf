@@ -22,8 +22,7 @@ __global__ void
 multispline_fused_fw_kernel(const scalar_t *f, const scalar_t *pseudo, const int64_t *kernel_size, scalar_t *output,
                       const uint8_t *is_open_spline, const int64_t *scatter_index, const int64_t *edge_index,
                       int64_t M_out,  int64_t N, const scalar_t *basis, const int64_t *weight_index, 
-                      int64_t levels,  int64_t total_size,  long numel, int64_t S, int64_t E, int64_t *primes, int64_t *offsets, 
-                      const bool *factors)
+                      int64_t levels,  int64_t total_size,  long numel, int64_t S, int64_t E, int64_t *primes, int64_t *offsets)
 {
   
   // Variables needed are S, pseudo, kernel size, open_spline, basis?
@@ -67,8 +66,7 @@ torch::Tensor multispline_fused_fw_cuda(torch::Tensor feats,
                                   torch::Tensor pseudo, torch::Tensor kernel_size,
                                   torch::Tensor is_open_spline,
                                   int64_t size_scatter_out, 
-                                  torch::Tensor basis, torch::Tensor weight_index, int64_t total_size, torch::Tensor primes, torch::Tensor offsets, 
-                                  torch::Tensor factors) {
+                                  torch::Tensor basis, torch::Tensor weight_index, int64_t total_size, torch::Tensor primes, torch::Tensor offsets) {
   
 
   cudaSetDevice(feats.get_device());
@@ -86,7 +84,6 @@ torch::Tensor multispline_fused_fw_cuda(torch::Tensor feats,
   auto weight_index_data = weight_index.data_ptr<int64_t>();
   auto primes_data = primes.data_ptr<int64_t>();
   auto offsets_data = offsets.data_ptr<int64_t>();
-  auto factors_data = factors.data_ptr<bool>();
   auto stream = at::cuda::getCurrentCUDAStream();
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(feats.scalar_type(), "multispline_fused_fw", [&] {
     auto kernel_size_data = kernel_size.data_ptr<int64_t>();
@@ -100,7 +97,7 @@ torch::Tensor multispline_fused_fw_cuda(torch::Tensor feats,
         <<<BLOCKS(E*M_out*levels), THREADS, 0, stream>>>(
             f_data, pseudo_data, kernel_size_data, out_data, is_open_spline_data,
             scatter_index_data, edge_index_data,
-            M_out,size_scatter_out, basis_data, weight_index_data,levels, total_size, E*M_out*levels, S, E, primes_data, offsets_data, factors_data
+            M_out,size_scatter_out, basis_data, weight_index_data,levels, total_size, E*M_out*levels, S, E, primes_data, offsets_data
             );
     
   });
@@ -115,7 +112,7 @@ multispline_fused_bw_kernel(scalar_t *grad_feat,const scalar_t *grad_out  ,const
                              const uint8_t *is_open_spline, const int64_t *scatter_index, 
                              int64_t E, int D, long M_out, int64_t N,
                              const scalar_t *basis, const int64_t *weight_index, int64_t levels, int total_size, int64_t numel, const int64_t *edge_index,
-                              int64_t *primes, int64_t *offsets, const scalar_t *feats, const bool *factors)
+                              int64_t *primes, int64_t *offsets, const scalar_t *feats)
 {
   // unsigned int primes[16] = {0, 0, 0, 0, 0, 0, 715902911, 729070343, 919548613, 449542579, 530997011, 314167211, 146148241, 458291711, 225061747, 385280261};
   // unsigned int offsets[16] = {8, 27, 64, 125, 216, 343, 512,729, 1000,1331,1728,2197,2744,3375,4096,4913 };
@@ -159,8 +156,7 @@ torch::Tensor multispline_fused_bw_cuda(torch::Tensor grad_out,
                                   torch::Tensor edge_index,torch::Tensor scatter_index,
                                   torch::Tensor pseudo, torch::Tensor kernel_size, torch::Tensor is_open_spline,
                                   torch::Tensor basis, torch::Tensor weight_index, 
-                                  int64_t total_size, torch::Tensor primes, torch::Tensor offsets,  torch::Tensor feats,
-                                  torch::Tensor factors)
+                                  int64_t total_size, torch::Tensor primes, torch::Tensor offsets,  torch::Tensor feats)
 {
   
   
@@ -180,7 +176,6 @@ torch::Tensor multispline_fused_bw_cuda(torch::Tensor grad_out,
 
   // auto grad_conf = at::zeros({pts,levels}, grad_out.options());
   auto edge_index_data = edge_index.data_ptr<int64_t>();
-  auto factors_data = factors.data_ptr<bool>();
   auto stream = at::cuda::getCurrentCUDAStream();
   AT_DISPATCH_FLOATING_TYPES_AND_HALF(grad_out.scalar_type(), "multispline_fused_bw", [&] {
     auto kernel_size_data = kernel_size.data_ptr<int64_t>();
@@ -195,11 +190,83 @@ torch::Tensor multispline_fused_bw_cuda(torch::Tensor grad_out,
             grad_feat_data,grad_out_data, pseudo_data, kernel_size_data,is_open_spline_data,
             scatter_index_data,E,D,
             M_out,size_scatter_out, basis_data, weight_index_data,levels, total_size, E*M_out*levels, edge_index_data,
-            primes_data, offsets_data, feat_data, factors_data
+            primes_data, offsets_data, feat_data
             );
     
   });
   return grad_feats;
 }
 
+template <typename scalar_t>
+__global__ void multispline_fused_bw_basis_kernel(
+    const scalar_t *grad_out,       // [size_scatter_out, levels*M_out]
+    const scalar_t *f,              // [total_size, levels] -- used to index the features (from the forward pass)
+    const int64_t *weight_index,    // [E, S, levels]
+    const int64_t *scatter_index,   // [E]
+    scalar_t *grad_basis,           // [E, S, levels] (output)
+    int64_t E, int64_t S, int64_t levels, int64_t M_out)
+{
+  // Each thread computes the gradient for one basis element.
+  int64_t idx = blockIdx.x * blockDim.x + threadIdx.x;
+  int64_t total = E * S * levels;
+  if (idx < total) {
+    // decode the indices:
+    int64_t e = idx / (S * levels);
+    int64_t rem = idx % (S * levels);
+    int64_t s = rem / levels;
+    int64_t level = rem % levels;
 
+    // Get the corresponding discrete index computed in the forward pass.
+    int64_t wi = weight_index[e * S * levels + s * levels + level];
+    // The forward kernel wrote to output at index:
+    // out_idx = scatter_index[e] * (levels * M_out) + (m * levels + level)
+    // and multiplied f[ (wi * M_out * levels) + m*levels + level ] * basis[...] 
+    // Thus, the gradient wrt basis is:
+    // grad_basis[e,S,level] = sum_{m=0}^{M_out-1} ( f[wi_index] * grad_out[out_idx] )
+    scalar_t sum = 0;
+    int64_t out_base = scatter_index[e] * (levels * M_out);
+    for (int64_t m = 0; m < M_out; m++) {
+      int64_t f_idx = wi * (M_out * levels) + m * levels + level;
+      int64_t out_idx = out_base + m * levels + level;
+      sum += f[f_idx] * grad_out[out_idx];
+    }
+    grad_basis[e * S * levels + s * levels + level] = sum;
+  }
+}
+
+torch::Tensor multispline_fused_bw_basis_cuda(torch::Tensor grad_out,
+                                               torch::Tensor f,
+                                               torch::Tensor weight_index,
+                                               torch::Tensor scatter_index) {
+  CHECK_CUDA(grad_out);
+  CHECK_CUDA(f);
+  CHECK_CUDA(weight_index);
+  CHECK_CUDA(scatter_index);
+  cudaSetDevice(grad_out.get_device());
+
+  // Let E, S, levels be determined by the weight_index shape: [E, S, levels]
+  int64_t E = weight_index.size(0);
+  int64_t S = weight_index.size(1);
+  int64_t levels = weight_index.size(2);
+  // M_out is derived from grad_out shape. (Assume grad_out is [size_scatter_out, M_out*levels])
+  int64_t M_out = grad_out.size(1) / levels;
+
+  auto grad_basis = at::zeros({E, S, levels}, grad_out.options());
+  int64_t numel = E * S * levels;
+
+  auto weight_index_data = weight_index.data_ptr<int64_t>();
+  auto scatter_index_data = scatter_index.data_ptr<int64_t>();
+
+  auto stream = at::cuda::getCurrentCUDAStream();
+  AT_DISPATCH_FLOATING_TYPES_AND_HALF(grad_out.scalar_type(), "multispline_fused_bw_basis", [&] {
+    auto grad_out_data = grad_out.data_ptr<scalar_t>();
+    auto f_data = f.data_ptr<scalar_t>();
+    auto grad_basis_data = grad_basis.data_ptr<scalar_t>();
+    multispline_fused_bw_basis_kernel<scalar_t>
+      <<<BLOCKS(numel), THREADS, 0, stream>>>(
+          grad_out_data, f_data, weight_index_data, scatter_index_data,
+          grad_basis_data, E, S, levels, M_out);
+  });
+
+  return grad_basis;
+}
